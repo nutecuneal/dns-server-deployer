@@ -13,15 +13,14 @@ services:
     environment:
       - TZ=America/Maceio
       - CUSTOM_CACHE_SIZE=10000
-      - PIHOLE_DNS_=172.20.0.2
+      - PIHOLE_DNS_=dns-server-unbound
       - WEBPASSWORD=webuserpass
     volumes:
-      - './sd/etc-pihole:/etc/pihole'
-      - './sd/etc-dnsmasq.d:/etc/dnsmasq.d'
-      - './sd/piholelog/:/var/log/pihole'
+      - '$(pwd)/etc-pihole:/etc/pihole'
+      - '$(pwd)/etc-dnsmasq.d:/etc/dnsmasq.d'
+      - '$(pwd)/log-pihole/:/var/log/pihole'
     networks:
-      dns-server-net:
-        ipv4_address: 172.20.0.3
+      - dns-server-net
     depends_on:
       unbounddns-app:
         condition: service_healthy
@@ -35,11 +34,10 @@ services:
     #  - '53:53/udp'
     hostname: 'unbounddns'
     volumes:
-      - './sd/unbound:/opt/unbound/etc/unbound'
-      - './sd/unboundlog:/var/log/unbound'
+      - '$(pwd)/etc-unbound:/opt/unbound/etc/unbound'
+      - '$(pwd)/log-unbound:/var/log/unbound'
     networks:
-      dns-server-net:
-        ipv4_address: 172.20.0.2
+      - dns-server-net
     restart: always
 
 networks:
@@ -48,5 +46,5 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: '172.20.0.0/28'
-          gateway: 172.20.0.1
+        - subnet: '172.18.0.0/28'
+          gateway: 172.18.0.1
