@@ -17,6 +17,7 @@ O [**Pi-hole**](https://pi-hole.net) é um bloqueador de DNS em nível de rede p
       - [Volumes](#volumes)
       - [Portas](#portas)
       - [Variáveis de Ambiente (Environment)](#variáveis-de-ambiente-environment)
+      - [Rede](#rede)
       - [Executando o Docker-Compose](#executando-o-docker-compose)
 
 ## Requisitos e Dependências
@@ -151,6 +152,19 @@ environment:
   - PIHOLE_DNS_=dns-server-unbound
 # Senha do usuário admin.
   - WEBPASSWORD=webuserpass
+```
+
+#### Rede
+
+```yml
+# docker-compose.yml (Em networks.dns-server-net.ipam)
+# Altere o valores caso necessário. 
+
+config:
+# Endereço da rede
+  - subnet: '172.18.0.0/28'
+# Gateway da rede
+    gateway: 172.18.0.1
 ```
 
 #### Executando o Docker-Compose
