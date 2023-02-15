@@ -12,13 +12,19 @@ O [**Pi-hole**](https://pi-hole.net) é um bloqueador de DNS em nível de rede p
   - [Sumário](#sumário)
   - [Requisitos e Dependências](#requisitos-e-dependências)
   - [Instalação](#instalação)
-    - [Estrutura de Diretórios](#estrutura-de-diretórios)
-    - [Construção da Imagem - Docker](#construção-da-imagem---docker)
-      - [Volumes](#volumes)
-      - [Portas](#portas)
-      - [Variáveis de Ambiente (Environment)](#variáveis-de-ambiente-environment)
-      - [Rede](#rede)
-      - [Executando o Docker-Compose](#executando-o-docker-compose)
+    - [PiHole](#pihole)
+      - [Estrutura de Diretórios](#estrutura-de-diretórios)
+      - [Docker-Compose](#docker-compose)
+        - [Portas](#portas)
+        - [Volumes](#volumes)
+        - [Variáveis de Ambiente (Environment)](#variáveis-de-ambiente-environment)
+    - [Unbound](#unbound)
+      - [Estrutura de Diretórios](#estrutura-de-diretórios-1)
+      - [Docker-Compose](#docker-compose-1)
+        - [Portas](#portas-1)
+        - [Volumes](#volumes-1)
+    - [Docker-Compose - Rede](#docker-compose---rede)
+    - [Executando o Docker-Compose](#executando-o-docker-compose)
 
 ## Requisitos e Dependências
 
@@ -26,10 +32,12 @@ O [**Pi-hole**](https://pi-hole.net) é um bloqueador de DNS em nível de rede p
 
 ## Instalação
 
-### Estrutura de Diretórios
+### PiHole
+
+#### Estrutura de Diretórios
 
 ```bash
-# Crie os diretórios - Pi-hole
+# Crie os diretórios
 
 # Dir. config.1
 $ mkdir $(pwd)/etc-pihole
@@ -41,71 +49,14 @@ $ mkdir $(pwd)/etc-dnsmasq.d
 $ mkdir $(pwd)/log-pihole
 ```
 
-```bash
-# Crie os diretórios - Unbound
-
-# Dir. config
-$ mkdir $(pwd)/etc-unbound
-
-# Dir. Log
-$ mkdir $(pwd)/log-unbound
-
-```
-
-```bash
-# Crie os arquivos extras de config.
-
-# Entre na pasta
-cd $(pwd)/etc-unbound
-
-# Crie os arquivos
-touch a-records.conf srv-records.conf forward-records.conf
-```
-
 Sugestão (no Linux):
-- Dir. config.1 (Pi-hole): */etc/pihole*
-- Dir. config.2 (Pi-hole): */etc/dnsmasq.d*
-- Dir. Log (Pi-hole): */var/log/pihole*
-- Dir. config (Unbound): */etc/unbound*
-- Dir. Log (Unbound): */var/log/unbound*
+- Dir. config.1: */etc/pihole*
+- Dir. config.2: */etc/dnsmasq.d*
+- Dir. Log: */var/log/pihole*
 
-### Construção da Imagem - Docker
+#### Docker-Compose
 
-#### Volumes
-
-```yml
-# docker-compose.yml (Em services.pihole-app)
-# Aponte para as pastas criadas anteriormente.
-
-# Antes
-volumes:
-  - '$(pwd)/etc-pihole:/etc/pihole'
-  - '$(pwd)/etc-dnsmasq.d:/etc/dnsmasq.d'
-  - '$(pwd)/log-pihole/:/var/log/pihole'
-
-# Depois (exemplo)
-volumes:
-  - '/etc/pihole:/etc/pihole'
-  - '/etc/dnsmasq.d:/etc/dnsmasq.d'
-  - '/var/log/pihole:/var/log/pihole
-```
-
-```yml
-# docker-compose.yml (Em services.unbounddns-app)
-# Aponte para as pastas criadas anteriormente.
-
-# Antes
-volumes:
-  - '$(pwd)/etc-unbound:/opt/unbound/etc/unbound'
-  - '$(pwd)/log-unbound:/var/log/unbound'
-
-# Depois (exemplo)
-volumes:
-  - '/etc/unbound:/opt/unbound/etc/unbound'
-  - '/var/log/unbound:/var/log/unbound'
-```
-
-#### Portas
+##### Portas
 
 ```yml
 # docker-compose.yml (Em services.pihole-app)
@@ -123,21 +74,26 @@ ports:
   - '80:80'
 ```
 
-Obs.: A configuração abaixo só é necessária caso pretenda usar o Unbound como o serviço principal de DNS, eliminando assim o Pi-hole da arquitetura. 
+##### Volumes
 
 ```yml
-# docker-compose.yml (Em services.unbounddns-app)
+# docker-compose.yml (Em services.pihole-app)
+# Aponte para as pastas criadas anteriormente.
 
-# Descomente (e/ou altere) as portas/serviços que você deseja oferecer. 
+# Antes
+volumes:
+  - '$(pwd)/etc_pihole:/etc/pihole'
+  - '$(pwd)/etc_dnsmasq.d:/etc/dnsmasq.d'
+  - '$(pwd)/log_pihole/:/var/log/pihole'
 
-ports:
-# Porta para DNS usando TCP.
-  - '53:53'
-# Porta para DNS usando UDP.
-  - '53:53/udp'
+# Depois (exemplo)
+volumes:
+  - '/etc/pihole:/etc/pihole'
+  - '/etc/dnsmasq.d:/etc/dnsmasq.d'
+  - '/var/log/pihole:/var/log/pihole
 ```
 
-#### Variáveis de Ambiente (Environment)
+##### Variáveis de Ambiente (Environment)
 
 ```yml
 # docker-compose.yml (Em services.pihole-app)
@@ -154,7 +110,69 @@ environment:
   - WEBPASSWORD=webuserpass
 ```
 
-#### Rede
+### Unbound
+
+#### Estrutura de Diretórios
+
+```bash
+# Crie os diretórios - Unbound
+
+# Dir. config
+$ mkdir $(pwd)/etc-unbound
+
+# Dir. Log
+$ mkdir $(pwd)/log-unbound
+
+```
+
+Sugestão (no Linux):
+- Dir. config: */etc/unbound*
+- Dir. Log: */var/log/unbound*
+
+
+```bash
+# Crie os arquivos extras de config (em $(pwd)/etc-unbound).
+
+# Crie os arquivos
+touch a-records.conf srv-records.conf forward-records.conf
+```
+
+#### Docker-Compose
+
+##### Portas
+
+Essa configuração só é necessária caso pretenda usar o Unbound como o serviço principal de DNS, eliminando assim o Pi-hole da arquitetura. 
+
+```yml
+# docker-compose.yml (Em services.unbounddns-app)
+
+# Descomente (e/ou altere) as portas/serviços que você deseja oferecer. 
+
+ports:
+# Porta para DNS usando TCP.
+  - '53:53'
+# Porta para DNS usando UDP.
+  - '53:53/udp'
+```
+
+##### Volumes
+
+```yml
+# docker-compose.yml (Em services.unbounddns-app)
+# Aponte para as pastas criadas anteriormente.
+
+# Antes
+volumes:
+  - '$(pwd)/etc_unbound:/opt/unbound/etc/unbound'
+  - '$(pwd)/log_unbound:/var/log/unbound'
+
+# Depois (exemplo)
+volumes:
+  - '/etc/unbound:/opt/unbound/etc/unbound'
+  - '/var/log/unbound:/var/log/unbound'
+```
+
+### Docker-Compose - Rede
 
 ```yml
 # docker-compose.yml (Em networks.dns-server-net.ipam)
@@ -163,13 +181,11 @@ environment:
 config:
 # Endereço da rede
   - subnet: '172.18.0.0/28'
-# Gateway da rede
-    gateway: 172.18.0.1
 ```
 
-#### Executando o Docker-Compose
+### Executando o Docker-Compose
 ```bash
 # Execute
 
-$ docker-compose -f docker-compose.yml up
+$ docker-compose up
 ```
