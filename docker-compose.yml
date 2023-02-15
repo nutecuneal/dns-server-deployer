@@ -10,9 +10,9 @@ services:
       # - '67:67/udp' # Only required if you are using Pi-hole as your DHCP server
       # - '80:80'     # HTTP - WebAdmin
     volumes:
-      - '$(pwd)/etc-pihole:/etc/pihole'
-      - '$(pwd)/etc-dnsmasq.d:/etc/dnsmasq.d'
-      - '$(pwd)/log-pihole/:/var/log/pihole'
+      - '$(pwd)/etc_pihole:/etc/pihole'
+      - '$(pwd)/etc_dnsmasq.d:/etc/dnsmasq.d'
+      - '$(pwd)/log_pihole/:/var/log/pihole'
     environment:
       - TZ=America/Maceio
       - CUSTOM_CACHE_SIZE=10000
@@ -33,8 +33,8 @@ services:
     # - '53:53'       # DNS Service - TCP
     # - '53:53/udp'   # DNS Service - UDP
     volumes:
-      - '$(pwd)/etc-unbound:/opt/unbound/etc/unbound'
-      - '$(pwd)/log-unbound:/var/log/unbound'
+      - '$(pwd)/etc_unbound:/opt/unbound/etc/unbound'
+      - '$(pwd)/log_unbound:/var/log/unbound'
     hostname: 'unbounddns'
     networks:
       - dns-server-net
