@@ -2,43 +2,43 @@ version: '3.8'
 
 services:
   pihole-app:
-    image: 'pihole/pihole:2022.12'
+    image: 'pihole/pihole:2023.02.1'
     container_name: 'dns-server-pihole'
-    #ports:
-    #  - '53:53'
-    #  - '53:53/udp'
-    #  - '67:67/udp' # Only required if you are using Pi-hole as your DHCP server
-    #  - '80:80'
-    hostname: 'pihole'
+    ports:
+      - '53:53'       # DNS Service - TCP
+      - '53:53/udp'   # DNS Service - UDP
+      # - '67:67/udp' # Only required if you are using Pi-hole as your DHCP server
+      # - '80:80'     # HTTP - WebAdmin
+    volumes:
+      - '$(pwd)/etc-pihole:/etc/pihole'
+      - '$(pwd)/etc-dnsmasq.d:/etc/dnsmasq.d'
+      - '$(pwd)/log-pihole/:/var/log/pihole'
     environment:
       - TZ=America/Maceio
       - CUSTOM_CACHE_SIZE=10000
       - PIHOLE_DNS_=dns-server-unbound
       - WEBPASSWORD=webuserpass
-    volumes:
-      - '$(pwd)/etc-pihole:/etc/pihole'
-      - '$(pwd)/etc-dnsmasq.d:/etc/dnsmasq.d'
-      - '$(pwd)/log-pihole/:/var/log/pihole'
+    hostname: 'pihole'
     networks:
       - dns-server-net
     depends_on:
       unbounddns-app:
         condition: service_healthy
-    restart: always
+    restart: unless-stopped
 
   unbounddns-app:
-    image: 'mvance/unbound:1.16.3'
+    image: 'mvance/unbound:1.17.0'
     container_name: 'dns-server-unbound'
     #ports:
-    #  - '53:53'
-    #  - '53:53/udp'
-    hostname: 'unbounddns'
+    # - '53:53'       # DNS Service - TCP
+    # - '53:53/udp'   # DNS Service - UDP
     volumes:
       - '$(pwd)/etc-unbound:/opt/unbound/etc/unbound'
       - '$(pwd)/log-unbound:/var/log/unbound'
+    hostname: 'unbounddns'
     networks:
       - dns-server-net
-    restart: always
+    restart: unless-stopped
 
 networks:
   dns-server-net:
@@ -47,4 +47,3 @@ networks:
       driver: default
       config:
         - subnet: '172.18.0.0/28'
-          gateway: 172.18.0.1
